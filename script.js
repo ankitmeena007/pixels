@@ -3,6 +3,7 @@ document.addEventListener("DOMContentLoaded", () => {
     .then(res => res.json())
     .then(photos => {
       const gallery = document.getElementById("gallery");
+      gallery.innerHTML = ""; // clear previous images to prevent duplicates
 
       photos.forEach(photo => {
         const figure = document.createElement("figure");
@@ -10,7 +11,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const picture = document.createElement("picture");
 
-        // Clean base name (in case old -400/-800 suffix exists)
+        // Clean base name (strip any accidental -400/-800 suffix)
         const base = photo.replace(/-\d+$/, "");
 
         // WebP source
@@ -42,7 +43,6 @@ document.addEventListener("DOMContentLoaded", () => {
         picture.appendChild(sourceWebp);
         picture.appendChild(sourceJpg);
         picture.appendChild(img);
-
         figure.appendChild(picture);
         gallery.appendChild(figure);
       });
@@ -51,7 +51,6 @@ document.addEventListener("DOMContentLoaded", () => {
       setupLightbox();
     });
 
-  // Lazy-loading using IntersectionObserver
   function setupLazyLoading() {
     const lazySources = document.querySelectorAll("source[data-srcset]");
     const lazyImgs = document.querySelectorAll("img[data-src]");
@@ -80,13 +79,11 @@ document.addEventListener("DOMContentLoaded", () => {
       lazySources.forEach(el => observer.observe(el));
       lazyImgs.forEach(el => observer.observe(el));
     } else {
-      // Fallback
       lazySources.forEach(el => el.srcset = el.dataset.srcset);
       lazyImgs.forEach(el => el.src = el.dataset.src);
     }
   }
 
-  // Lightbox functionality
   function setupLightbox() {
     const lightbox = document.getElementById("lightbox");
     const lightboxImg = document.getElementById("lightbox-img");
@@ -99,7 +96,6 @@ document.addEventListener("DOMContentLoaded", () => {
       });
     });
 
-    // Close lightbox on click
     lightbox.addEventListener("click", e => {
       if (e.target === lightbox || e.target === lightboxImg) {
         lightbox.classList.remove("active");
@@ -107,7 +103,6 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     });
 
-    // Close lightbox on ESC
     document.addEventListener("keydown", e => {
       if (e.key === "Escape") {
         lightbox.classList.remove("active");
