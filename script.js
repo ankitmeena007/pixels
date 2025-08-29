@@ -6,13 +6,16 @@ document.addEventListener("DOMContentLoaded", () => {
 
       photos.forEach((photo) => {
         const figure = document.createElement("figure");
-
         const picture = document.createElement("picture");
 
         // WebP source
         const sourceWebp = document.createElement("source");
         sourceWebp.type = "image/webp";
-        sourceWebp.srcset = `images/${photo}-400.webp 400w, images/${photo}-800.webp 800w, images/${photo}-1600.webp 1600w`;
+        sourceWebp.srcset = [
+          `images/${photo}-400.webp 400w`,
+          `images/${photo}-800.webp 800w`,
+          `images/${photo}-1600.webp 1600w`
+        ].join(", ");
         sourceWebp.sizes =
           "(max-width: 600px) 100vw, (max-width: 1200px) 50vw, 33vw";
         picture.appendChild(sourceWebp);
@@ -20,12 +23,16 @@ document.addEventListener("DOMContentLoaded", () => {
         // JPG fallback
         const sourceJpg = document.createElement("source");
         sourceJpg.type = "image/jpeg";
-        sourceJpg.srcset = `images/${photo}-400.jpg 400w, images/${photo}-800.jpg 800w, images/${photo}-1600.jpg 1600w`;
+        sourceJpg.srcset = [
+          `images/${photo}-400.jpg 400w`,
+          `images/${photo}-800.jpg 800w`,
+          `images/${photo}-1600.jpg 1600w`
+        ].join(", ");
         sourceJpg.sizes =
           "(max-width: 600px) 100vw, (max-width: 1200px) 50vw, 33vw";
         picture.appendChild(sourceJpg);
 
-        // Default <img> tag
+        // Default <img>
         const img = document.createElement("img");
         img.src = `images/${photo}-800.jpg`;
         img.alt = photo;
@@ -35,7 +42,7 @@ document.addEventListener("DOMContentLoaded", () => {
         figure.appendChild(picture);
         gallery.appendChild(figure);
 
-        // Lightbox click
+        // Lightbox
         img.addEventListener("click", () => {
           openLightbox(`images/${photo}-1600.jpg`);
         });
@@ -56,12 +63,10 @@ document.addEventListener("DOMContentLoaded", () => {
     lightboxImg.src = "";
   }
 
-  // Close on background click
   lightbox.addEventListener("click", (e) => {
     if (e.target === lightbox) closeLightbox();
   });
 
-  // Close on ESC key
   document.addEventListener("keydown", (e) => {
     if (e.key === "Escape") closeLightbox();
   });
