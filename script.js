@@ -1,56 +1,84 @@
 async function loadPhotos() {
-  const response = await fetch('photos.json');
-  const photos = await response.json();
-  const gallery = document.getElementById('gallery');
+  const res = await fetch("photos.json");
+  const photos = await res.json();
 
-  photos.forEach(name => {
-    const picture = document.createElement('picture');
+  const gallery = document.getElementById("gallery");
 
-    // WebP responsive source
-    picture.innerHTML = `
-      <source 
-        type="image/webp" 
-        srcset="
-          images/${name}-400.webp 400w,
-          images/${name}-800.webp 800w,
-          images/${name}-1600.webp 1600w
-        "
-        sizes="(max-width: 600px) 100vw,
-               (max-width: 1200px) 50vw,
-               33vw"
-      >
+  photos.forEach(photo => {
+    const figure = document.createElement("figure");
+    figure.classList.add("photo");
+
+    const picture = document.createElement("picture");
+
+    // WebP sources (lazy)
+    const sourceWebp = document.createElement("source");
+    sourceWebp.type = "image/webp";
+    sourceWebp.dataset.srcset = `
+      images/${photo}-400.webp 400w,
+      images/${photo}-800.webp 800w,
+      images/${photo}-1600.webp 1600w
     `;
+    sourceWebp.sizes = "(max-width: 600px) 100vw, (max-width: 1200px) 50vw, 33vw";
 
-    // JPG fallback
-    const img = document.createElement('img');
-    img.src = `images/${name}-800.jpg`; // mid-size default
-    img.alt = name;
-    img.loading = "lazy";
-    img.classList.add("photo");
+    // JPG sources (fallback)
+    const sourceJpg = document.createElement("source");
+    sourceJpg.type = "image/jpeg";
+    sourceJpg.dataset.srcset = `
+      images/${photo}-400.jpg 400w,
+      images/${photo}-800.jpg 800w,
+      images/${photo}-1600.jpg 1600w
+    `;
+    sourceJpg.sizes = sourceWebp.sizes;
 
+    // Default <img>
+    const img = document.createElement("img");
+    img.alt = photo;
+    img.dataset.src = `images/${photo}-800.jpg`; // lazy-loaded
+    img.loading = "lazy"; // native browser lazy load as fallback
+
+    picture.appendChild(sourceWebp);
+    picture.appendChild(sourceJpg);
     picture.appendChild(img);
-    gallery.appendChild(picture);
 
-    // Lightbox
-    img.addEventListener("click", () => openLightbox(name));
+    figure.appendChild(picture);
+    gallery.appendChild(figure);
   });
+
+  setupLazyLoading();
 }
 
-function openLightbox(name) {
-  const lightbox = document.getElementById("lightbox");
-  const lightboxImg = document.getElementById("lightbox-img");
+function setupLazyLoading() {
+  const lazySources = document.querySelectorAll("source[data-srcset]");
+  const lazyImgs = document.querySelectorAll("img[data-src]");
 
-  // Show large image in lightbox
-  lightboxImg.src = `images/${name}-1600.jpg`;
+  if ("IntersectionObserver" in window) {
+    let observer = new IntersectionObserver(entries => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          const el = entry.target;
 
-  lightbox.classList.add("active");
+          if (el.tagName === "SOURCE") {
+            el.srcset = el.dataset.srcset;
+            delete el.dataset.srcset;
+          }
+
+          if (el.tagName === "IMG") {
+            el.src = el.dataset.src;
+            delete el.dataset.src;
+          }
+
+          observer.unobserve(el);
+        }
+      });
+    }, { rootMargin: "200px" });
+
+    lazySources.forEach(src => observer.observe(src));
+    lazyImgs.forEach(img => observer.observe(img));
+  } else {
+    // Fallback: load all immediately
+    lazySources.forEach(src => { src.srcset = src.dataset.srcset; });
+    lazyImgs.forEach(img => { img.src = img.dataset.src; });
+  }
 }
 
-function closeLightbox() {
-  document.getElementById("lightbox").classList.remove("active");
-}
-
-document.getElementById("lightbox").addEventListener("click", closeLightbox);
-
-// Run
 loadPhotos();
