@@ -1,49 +1,68 @@
-async function loadPhotos() {
-  const response = await fetch('photos.json');
-  const photos = await response.json();
-  const gallery = document.getElementById('gallery');
+document.addEventListener("DOMContentLoaded", () => {
+  fetch("photos.json")
+    .then((response) => response.json())
+    .then((photos) => {
+      const gallery = document.getElementById("gallery");
 
-  photos.forEach(photo => {
-    const picture = document.createElement('picture');
+      photos.forEach((photo) => {
+        const figure = document.createElement("figure");
 
-    const sourceWebp = document.createElement('source');
-    sourceWebp.srcset = `images/${photo}-400.webp 400w, images/${photo}-800.webp 800w, images/${photo}-1600.webp 1600w`;
-    sourceWebp.type = 'image/webp';
+        const picture = document.createElement("picture");
 
-    const sourceJpg = document.createElement('source');
-    sourceJpg.srcset = `images/${photo}-400.jpg 400w, images/${photo}-800.jpg 800w, images/${photo}-1600.jpg 1600w`;
-    sourceJpg.type = 'image/jpeg';
+        // WebP source
+        const sourceWebp = document.createElement("source");
+        sourceWebp.type = "image/webp";
+        sourceWebp.srcset = `images/${photo}-400.webp 400w, images/${photo}-800.webp 800w, images/${photo}-1600.webp 1600w`;
+        sourceWebp.sizes =
+          "(max-width: 600px) 100vw, (max-width: 1200px) 50vw, 33vw";
+        picture.appendChild(sourceWebp);
 
-    const img = document.createElement('img');
-    img.src = `images/${photo}-800.jpg`;
-    img.alt = photo;
-    img.loading = 'lazy';
+        // JPG fallback
+        const sourceJpg = document.createElement("source");
+        sourceJpg.type = "image/jpeg";
+        sourceJpg.srcset = `images/${photo}-400.jpg 400w, images/${photo}-800.jpg 800w, images/${photo}-1600.jpg 1600w`;
+        sourceJpg.sizes =
+          "(max-width: 600px) 100vw, (max-width: 1200px) 50vw, 33vw";
+        picture.appendChild(sourceJpg);
 
-    picture.appendChild(sourceWebp);
-    picture.appendChild(sourceJpg);
-    picture.appendChild(img);
+        // Default <img> tag
+        const img = document.createElement("img");
+        img.src = `images/${photo}-800.jpg`;
+        img.alt = photo;
+        img.loading = "lazy";
+        picture.appendChild(img);
 
-    picture.addEventListener('click', () => openLightbox(img.src));
+        figure.appendChild(picture);
+        gallery.appendChild(figure);
 
-    gallery.appendChild(picture);
-  });
-}
+        // Lightbox click
+        img.addEventListener("click", () => {
+          openLightbox(`images/${photo}-1600.jpg`);
+        });
+      });
+    });
 
-function openLightbox(src) {
-  const lightbox = document.getElementById('lightbox');
-  const lightboxImg = document.getElementById('lightbox-img');
-  lightbox.style.display = 'block';
-  lightboxImg.src = src;
-}
+  // Lightbox
+  const lightbox = document.getElementById("lightbox");
+  const lightboxImg = document.getElementById("lightbox-img");
 
-document.querySelector('.close').onclick = function() {
-  document.getElementById('lightbox').style.display = 'none';
-};
-
-document.getElementById('lightbox').onclick = function(e) {
-  if (e.target.id === 'lightbox') {
-    document.getElementById('lightbox').style.display = 'none';
+  function openLightbox(src) {
+    lightboxImg.src = src;
+    lightbox.classList.remove("hidden");
   }
-};
 
-loadPhotos();
+  function closeLightbox() {
+    lightbox.classList.add("hidden");
+    lightboxImg.src = "";
+  }
+
+  // Close on background click
+  lightbox.addEventListener("click", (e) => {
+    if (e.target === lightbox) closeLightbox();
+  });
+
+  // Close on ESC key
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") closeLightbox();
+  });
+});
