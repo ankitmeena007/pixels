@@ -1,14 +1,9 @@
-
 name: Resize Photos
 
 on:
   push:
     paths:
       - "originals/**"
-
-concurrency:
-  group: resize-photos
-  cancel-in-progress: false
 
 jobs:
   resize:
@@ -42,9 +37,9 @@ jobs:
             cwebp -q 80 -resize 1600 0 "$img" -o "images/${base}-1600.webp"
           done
 
-      - name: Update photos.json
+      - name: Update photos.json (newest first)
         run: |
-          ls originals | sed 's/\.[^.]*$//' | jq -R -s -c 'split("\n")[:-1]' > photos.json
+          ls -t originals | sed 's/\.[^.]*$//' | jq -R -s -c 'split("\n")[:-1]' > photos.json
 
       - name: Commit changes
         run: |
@@ -52,6 +47,5 @@ jobs:
           git config --global user.email "github-actions@github.com"
           git add images/ photos.json
           git commit -m "Auto resize + update photos.json" || echo "No changes"
-          git pull --rebase origin ${{ github.ref }} || true
+          git pull --rebase origin main || true
           git push
-
