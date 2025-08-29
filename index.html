@@ -3,18 +3,23 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Photo Showcase</title>
+  <title>Pixels</title>
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <h1 class="title">My Photo Showcase</h1>
-  <div id="gallery" class="gallery"></div>
+  <h1 class="title">Pixels Gallery</h1>
 
+  <!-- Gallery container -->
+  <div id="gallery" class="gallery-grid"></div>
+
+  <!-- Lightbox -->
   <div id="lightbox" class="lightbox">
-    <span class="close">&times;</span>
-    <img class="lightbox-img" id="lightbox-img">
+    <button id="prev-btn" class="nav-btn">&#10094;</button>
+    <img id="lightbox-img" src="" alt="">
+    <button id="next-btn" class="nav-btn">&#10095;</button>
+    <span id="close-btn">&times;</span>
   </div>
 
-  <script src="script.js"></script>
+  <script src="script.js" defer></script>
 </body>
 </html>
