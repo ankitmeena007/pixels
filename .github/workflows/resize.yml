@@ -1,3 +1,4 @@
+
 name: Resize Photos
 
 on:
@@ -5,34 +6,37 @@ on:
     paths:
       - "originals/**"
 
+concurrency:
+  group: resize-photos
+  cancel-in-progress: false
+
 jobs:
-  build:
+  resize:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
+      - uses: actions/checkout@v3
 
       - name: Install dependencies
         run: |
           sudo apt-get update
           sudo apt-get install -y imagemagick webp jq
 
-      - name: Create images folder
+      - name: Ensure images folder
         run: mkdir -p images
 
-      - name: Resize and convert images
+      - name: Resize and convert
         run: |
           for img in originals/*.{jpg,jpeg,png}; do
             [ -e "$img" ] || continue
             base=$(basename "$img" | sed 's/\.[^.]*$//')
             
-            # JPG versions
+            # JPG
             convert "$img" -resize 400 "images/${base}-400.jpg"
             convert "$img" -resize 800 "images/${base}-800.jpg"
             convert "$img" -resize 1600 "images/${base}-1600.jpg"
 
-            # WebP versions
+            # WebP
             cwebp -q 80 -resize 400 0 "$img" -o "images/${base}-400.webp"
             cwebp -q 80 -resize 800 0 "$img" -o "images/${base}-800.webp"
             cwebp -q 80 -resize 1600 0 "$img" -o "images/${base}-1600.webp"
@@ -42,10 +46,12 @@ jobs:
         run: |
           ls originals | sed 's/\.[^.]*$//' | jq -R -s -c 'split("\n")[:-1]' > photos.json
 
-      - name: Commit resized images
+      - name: Commit changes
         run: |
           git config --global user.name "github-actions"
           git config --global user.email "github-actions@github.com"
           git add images/ photos.json
-          git commit -m "Auto-resized new images" || echo "No changes to commit"
+          git commit -m "Auto resize + update photos.json" || echo "No changes"
+          git pull --rebase origin ${{ github.ref }} || true
           git push
+
